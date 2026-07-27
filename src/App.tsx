@@ -11,6 +11,7 @@ import { AdhkarLibrary } from "./components/AdhkarLibrary";
 import { AITadabburModal } from "./components/AITadabburModal";
 import { CardPosterGenerator } from "./components/CardPosterGenerator";
 import { CustomDhikrModal } from "./components/CustomDhikrModal";
+import { MobileAppExportModal } from "./components/MobileAppExportModal";
 import { DhikrItem, UserProgress, AudioSettings } from "./types";
 import { INITIAL_ADHKAR } from "./data/adhkar";
 import {
@@ -97,7 +98,6 @@ export default function App() {
         {activeTab === "library" && (
           <AdhkarLibrary
             allAdhkar={allAdhkar}
-            customAdhkar={[]}
             favorites={progress.favorites}
             onSelectDhikrForMisbaha={(item) => {
               setSelectedDhikr(item);
@@ -124,6 +124,11 @@ export default function App() {
             dhikrItem={selectedDhikr}
             isEmbeddedView={true}
           />
+        )}
+
+        {/* Tab 6: Mobile App Export & Direct Install Hub */}
+        {activeTab === "mobile_app" && (
+          <MobileAppExportModal />
         )}
 
       </main>

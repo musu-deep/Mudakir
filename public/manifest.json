@@ -1,0 +1,30 @@
+{
+  "id": "/",
+  "name": "غراس الجنة - تمكين الذاكرين",
+  "short_name": "غراس الجنة",
+  "description": "مسبحة ذكية ومكتبة أذكار ومتابعة للإنجاز ومساعد للتدبر.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#FDFCF9",
+  "theme_color": "#2D5A27",
+  "dir": "rtl",
+  "lang": "ar",
+  "orientation": "portrait-primary",
+  "categories": ["lifestyle", "education"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

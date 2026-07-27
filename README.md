@@ -1,68 +1,64 @@
 # مُذكِّر — غراس الجنة
 
-تطبيق عربي للذكر والأذكار اليومية، يضم مسبحة ذكية، مكتبة أذكار، متابعة الإنجاز، بطاقات للمشاركة، ومساعداً للتدبر والفهم يعمل عبر Gemini API.
+تطبيق عربي للذكر والأذكار اليومية، يضم مسبحة ذكية، مكتبة أذكار، متابعة الإنجاز، بطاقات للمشاركة، ومساعداً للتدبر يعمل عبر Gemini API.
 
-## المزايا
+## أبرز المزايا
 
 - مسبحة إلكترونية بأهداف مرنة وتنبيه صوتي واهتزاز اختياري.
 - مكتبة أذكار وتصنيفات ومفضلة وأذكار مخصصة.
 - متابعة يومية لعدد الأذكار والاستمرارية والغراس.
 - إنشاء بطاقات ذكر قابلة للمشاركة.
-- مساعد تدبر يعمل من الخادم، بحيث لا يظهر مفتاح Gemini في المتصفح.
-- واجهة عربية متجاوبة تدعم الجوال وسطح المكتب.
-
-## المتطلبات
-
-- Node.js 20 أو أحدث.
-- مفتاح Gemini API.
+- مساعد تدبر يعمل من الخادم لحماية مفتاح Gemini.
+- تطبيق ويب تقدمي PWA قابل للتثبيت على الجوال، مع دعم أساسي للعمل دون اتصال.
+- رابط مشاركة ورمز QR وإرشادات تجهيز نسخة للمتاجر.
 
 ## التشغيل محلياً
+
+يتطلب Node.js 20 أو أحدث.
 
 ```bash
 npm install
 cp .env.example .env
+npm run dev
 ```
 
 في Windows PowerShell:
 
 ```powershell
+npm install
 Copy-Item .env.example .env
+npm run dev
 ```
 
-أضف المفتاح داخل `.env`:
+أضف مفتاح Gemini داخل `.env`:
 
 ```env
 GEMINI_API_KEY=ضع_المفتاح_هنا
 GEMINI_MODEL=gemini-3.6-flash
 PORT=3000
+NODE_ENV=development
 ```
 
-ثم شغّل التطبيق:
+ثم افتح `http://localhost:3000`، ويمكن فحص الخادم عبر `http://localhost:3000/api/health`.
+
+## الفحص والبناء
 
 ```bash
-npm run dev
-```
-
-افتح `http://localhost:3000`، ويمكن فحص الخادم عبر `http://localhost:3000/api/health`.
-
-## فحص وبناء نسخة الإنتاج
-
-```bash
-npm run lint
-npm run build
+npm run check
 npm start
 ```
 
-## النشر على Render
+## النشر على Render باستخدام Docker
 
-يتضمن المشروع ملف `render.yaml`. أنشئ خدمة جديدة من المستودع، ثم أضف المتغير السري `GEMINI_API_KEY` في إعدادات الخدمة. لا تضع المفتاح في GitHub.
+المشروع مهيأ بملفي `Dockerfile` و`render.yaml`.
 
-## Docker
+- Runtime: Docker
+- Branch: `main`
+- Root Directory: فارغ
+- Health Check Path: `/api/health`
+- Environment variables: `GEMINI_API_KEY`, `GEMINI_MODEL`, `NODE_ENV`
 
-```bash
-docker build -t mudakir .
-docker run --rm -p 3000:3000 -e GEMINI_API_KEY=YOUR_KEY mudakir
-```
+لا تضف `PORT` في Render؛ المنصة تنشئه تلقائياً ويقرأه الخادم مباشرة.
 
 ## الخصوصية
 
