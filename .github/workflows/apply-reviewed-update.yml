@@ -28,7 +28,7 @@ jobs:
           echo "af0bc90755e27bf669002a13e2657e6276b4aa46cea38ffa82e50c752b0cbd11  /tmp/mudakir-update.tar.gz" | sha256sum -c -
           mkdir -p /tmp/mudakir-update
           tar -xzf /tmp/mudakir-update.tar.gz -C /tmp/mudakir-update
-          rsync -a --delete --exclude='.git/' /tmp/mudakir-update/ ./
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='.bootstrap/' /tmp/mudakir-update/ ./
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
