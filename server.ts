@@ -77,7 +77,6 @@ async function startServer() {
         contents: userPrompt,
         config: {
           systemInstruction,
-          temperature: 0.6,
         },
       });
 
