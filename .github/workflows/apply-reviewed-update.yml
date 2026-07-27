@@ -1,11 +1,10 @@
 name: Apply reviewed Mudakir update
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
-      - ".bootstrap/**"
-      - ".github/workflows/apply-reviewed-update.yml"
+      - ".bootstrap/apply-trigger-*"
   workflow_dispatch:
 
 permissions:
@@ -15,8 +14,11 @@ jobs:
   apply-update:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout pull request branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
 
       - name: Restore reviewed project archive
         shell: bash
@@ -39,11 +41,17 @@ jobs:
       - name: Type-check and build
         run: npm run check
 
-      - name: Commit reviewed project
+      - name: Commit reviewed project to pull request branch
         shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Apply reviewed PWA and Render update" || exit 0
-          git push
+          if [ -n "$HEAD_REF" ]; then
+            git push origin "HEAD:$HEAD_REF"
+          else
+            git push
+          fi
