@@ -1,0 +1,6 @@
+{
+  "name": "غراس الجنة - تمكين الذاكرين",
+  "description": "تطبيق إسلامي شامل لرفع شأن الذكر، ومسبحة إلكترونية متطورة، وأذكار المضاعفة وغراس الجنة، مع مساعد تدبر الذكر بالذكاء الاصطناعي وتتبع الأهداف والسنن اليومية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
