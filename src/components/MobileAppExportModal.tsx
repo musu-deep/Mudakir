@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Smartphone,
   Download,
@@ -11,50 +11,56 @@ import {
   Zap,
   ShieldCheck,
   Code2,
-  ExternalLink
+  ExternalLink,
+  Info
 } from "lucide-react";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import {
+  getCapturedPwaInstallPrompt,
+  isPwaRunningStandalone,
+  showNativePwaInstallPrompt,
+  subscribeToPwaInstallPrompt
+} from "../utils/pwaInstall";
 
 export const MobileAppExportModal: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCapacitorConfig, setCopiedCapacitorConfig] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [installAvailable, setInstallAvailable] = useState(() => Boolean(getCapturedPwaInstallPrompt()));
+  const [isInstalled, setIsInstalled] = useState(() => isPwaRunningStandalone());
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [activeTab, setActiveTab] = useState<"pwa" | "link" | "stores" | "capacitor">("pwa");
 
   const appShareUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   useEffect(() => {
-    const handleBeforeInstall = (event: Event) => {
-      event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
+    const unsubscribe = subscribeToPwaInstallPrompt((prompt) => {
+      setInstallAvailable(Boolean(prompt));
+      if (prompt) setShowInstallHelp(false);
+    });
+
+    const handleInstalled = () => {
+      setIsInstalled(true);
+      setShowInstallHelp(false);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-    }
-
+    window.addEventListener("appinstalled", handleInstalled);
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      unsubscribe();
+      window.removeEventListener("appinstalled", handleInstalled);
     };
   }, []);
 
   const handleInstallPWA = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setIsInstalled(true);
-      }
-      setDeferredPrompt(null);
-    } else {
-      alert("لتثبيت التطبيق على جهازك:\n- آيفون/آيباد: اضغط زر المشاركة (Share) ثم اختر 'إضافة إلى الشاشة الرئيسية' (Add to Home Screen)\n- أندرويد: افتح القائمة (⋮) ثم اختر 'تثبيت التطبيق' أو 'الإضافة للشاشة الرئيسية'");
+    if (isInstalled) return;
+
+    const outcome = await showNativePwaInstallPrompt();
+    if (outcome === "accepted") {
+      setIsInstalled(true);
+      setShowInstallHelp(false);
+      return;
+    }
+
+    if (outcome === "unavailable") {
+      setShowInstallHelp(true);
     }
   };
 
@@ -134,7 +140,7 @@ export const MobileAppExportModal: React.FC = () => {
           className="px-6 py-3.5 rounded-full bg-white text-[#2D5A27] font-bold text-sm hover:bg-emerald-50 transition-all shadow-md flex items-center gap-2 shrink-0"
         >
           <Download className="w-5 h-5 text-[#2D5A27]" />
-          <span>{isInstalled ? "التطبيق مثبت على جهازك" : "تثبيت التطبيق فوراً (PWA)"}</span>
+          <span>{isInstalled ? "التطبيق مثبت على جهازك" : installAvailable ? "تثبيت التطبيق الآن" : "تجهيز التثبيت"}</span>
         </button>
       </div>
 
@@ -244,9 +250,21 @@ export const MobileAppExportModal: React.FC = () => {
               className="px-8 py-3 rounded-full bg-[#2D5A27] hover:bg-[#1E3D1A] text-white font-bold text-sm shadow-sm transition-all inline-flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
-              <span>{isInstalled ? "التطبيق مثبت بالفعل" : "اضغط هنا للتثبيت المباشر على هذا الجهاز"}</span>
+              <span>{isInstalled ? "التطبيق مثبت بالفعل" : installAvailable ? "تثبيت التطبيق بنقرة واحدة" : "محاولة التثبيت"}</span>
             </button>
           </div>
+
+          {showInstallHelp && !isInstalled && (
+            <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-right flex items-start gap-3">
+              <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-amber-900">تعذر فتح نافذة التثبيت الأصلية في هذا المتصفح.</p>
+                <p className="text-xs leading-relaxed text-amber-800">
+                  افتح التطبيق في Chrome أو Edge على أندرويد أو ويندوز، ثم اضغط الزر مرة أخرى. على أجهزة Apple تفرض iOS استخدام «إضافة إلى الشاشة الرئيسية» من قائمة المشاركة، ولا يسمح النظام للمواقع بتجاوز هذه الخطوة.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
