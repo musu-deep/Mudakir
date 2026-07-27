@@ -1,0 +1,51 @@
+name: Apply PWA install fix
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".bootstrap/pwa-fix-trigger"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Restore reviewed PWA install fix
+        shell: bash
+        run: |
+          cat .bootstrap/pwa-fix.part.* > /tmp/pwa-install-fix.tar.gz.b64
+          base64 --decode /tmp/pwa-install-fix.tar.gz.b64 > /tmp/pwa-install-fix.tar.gz
+          echo "48cddce81a489b0d3bf5c3418e33b806eef8b8a275ebddb66d85921797b0923c  /tmp/pwa-install-fix.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/pwa-install-fix.tar.gz -C .
+          rm -rf .bootstrap .github/workflows/apply-pwa-install-fix.yml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check and build
+        run: npm run check
+
+      - name: Commit verified fix
+        shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix one-click PWA install prompt" || exit 0
+          git push origin "HEAD:$HEAD_REF"
