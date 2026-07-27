@@ -1,11 +1,11 @@
 services:
   - type: web
     name: mudakir
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    region: frankfurt
     healthCheckPath: /api/health
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_ENV
         value: production
