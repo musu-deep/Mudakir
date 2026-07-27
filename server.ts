@@ -1,9 +1,9 @@
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -65,8 +65,7 @@ async function startServer() {
 استخدم العربية الفصيحة المشرقة، مع تنسيق يسهل قراءته.`;
 
       if (mode === "explanation" && dhikrContext) {
-        systemInstruction += `
-المطلوب الآن: شرح وتدبر الذكر الآتي: «${dhikrContext}».`;
+        systemInstruction += `\nالمطلوب الآن: شرح وتدبر الذكر الآتي: «${dhikrContext}».`;
       }
 
       const userPrompt =
@@ -75,9 +74,7 @@ async function startServer() {
       const response = await ai.models.generateContent({
         model: GEMINI_MODEL,
         contents: userPrompt,
-        config: {
-          systemInstruction,
-        },
+        config: { systemInstruction },
       });
 
       const result = response.text?.trim();
@@ -113,7 +110,17 @@ async function startServer() {
       throw new Error(`Production build not found at ${indexPath}. Run npm run build first.`);
     }
 
-    app.use(express.static(distPath));
+    app.use(
+      express.static(distPath, {
+        maxAge: "1h",
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith("index.html") || filePath.endsWith("sw.js")) {
+            res.setHeader("Cache-Control", "no-cache");
+          }
+        },
+      }),
+    );
+
     app.get("*", (_req, res) => {
       res.sendFile(indexPath);
     });

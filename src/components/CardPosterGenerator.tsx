@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { Check, Copy, Palette, Share2, Sparkles, Trees, X } from "lucide-react";
+import React, { useState, useRef } from "react";
+import {
+  Download,
+  Share2,
+  Trees,
+  Sparkles,
+  Check,
+  X,
+  Palette
+} from "lucide-react";
 import { DhikrItem } from "../types";
 
 interface CardPosterGeneratorProps {
@@ -8,120 +16,180 @@ interface CardPosterGeneratorProps {
   isEmbeddedView?: boolean;
 }
 
-type ThemeName = "emerald" | "ivory" | "sand";
-
 export const CardPosterGenerator: React.FC<CardPosterGeneratorProps> = ({
   dhikrItem,
   onClose,
   isEmbeddedView = false,
 }) => {
-  const [theme, setTheme] = useState<ThemeName>("emerald");
-  const [dedication, setDedication] = useState("صدقة جارية ونفعاً للذاكرين");
-  const [copied, setCopied] = useState(false);
+  const [themeStyle, setThemeStyle] = useState<"emerald_gold" | "sapphire_silver" | "sand_amber">("emerald_gold");
+  const [dedicationText, setDedicationText] = useState("صدقة جارية ونفعاً للذاكرين");
+  const [isCopied, setIsCopied] = useState(false);
 
-  const text = dhikrItem?.text || "سُبْحَانَ اللهِ وَبِحَمْدِهِ، عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ";
-  const reward = dhikrItem?.rewardDescription || "غِرَاسُ الجَنَّةِ وَالذِّكْرُ المُضَاعَفُ";
-  const virtue = dhikrItem?.virtue || "ذكر جامع مبارك يوقظ القلب ويعظم صلته بالله.";
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const themes: Record<ThemeName, string> = {
-    emerald: "bg-gradient-to-br from-[#2D5A27] via-[#23461F] to-[#142D12] text-white",
-    ivory: "bg-gradient-to-br from-white via-[#F9F7F2] to-[#EAE3D5] text-[#2D3436]",
-    sand: "bg-gradient-to-br from-[#EFE3CA] via-[#FDF8EE] to-[#D9C39A] text-[#2D3436]",
+  const defaultItemText = dhikrItem?.text || "سُبْحَانَ اللهِ عَدَدَ مَا خَلَقَ فِي السَّمَاءِ، سُبْحَانَ اللهِ عَدَدَ مَا خَلَقَ فِي الأَرْضِ، سُبْحَانَ اللهِ عَدَدَ مَا بَيْنَ ذٰلِكَ، سُبْحَانَ اللهِ عَدَدَ مَا هُوَ خَالِقٌ";
+  const defaultReward = dhikrItem?.rewardDescription || "غِرَاسُ الجَنَّةِ وَالذِّكْرُ المُضَاعَفُ";
+  const defaultVirtue = dhikrItem?.virtue || "من الأذكار الجامعة التي تزن ساعات من التسبيح والتحميد.";
+
+  const themeClasses = {
+    emerald_gold: {
+      bg: "bg-gradient-to-br from-[#2D5A27] via-[#23461F] to-[#1E3D1A] border-[#EAE3D5]",
+      accent: "text-amber-200",
+      border: "border-amber-200/40",
+      titleBg: "bg-white/10 border-white/20 text-white",
+    },
+    sapphire_silver: {
+      bg: "bg-gradient-to-br from-[#FDFCF9] via-[#F9F7F2] to-[#EAE3D5] border-[#2D5A27]",
+      accent: "text-[#2D5A27]",
+      border: "border-[#2D5A27]/30",
+      titleBg: "bg-[#2D5A27] border-[#2D5A27] text-white",
+    },
+    sand_amber: {
+      bg: "bg-gradient-to-br from-[#EAE3D5] via-[#F9F7F2] to-[#FDFCF9] border-[#2D5A27]",
+      accent: "text-[#2D5A27]",
+      border: "border-[#2D5A27]/30",
+      titleBg: "bg-[#2D5A27] border-[#2D5A27] text-white",
+    },
   };
 
-  const shareText = `✨ ${reward}\n\n${text}\n\n${virtue}\n\n🌿 ${dedication}\nغراس الجنة — تمكين الذاكرين`;
+  const currentTheme = themeClasses[themeStyle];
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(shareText);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+  const handleCopyText = () => {
+    const textToShare = `✨ *${defaultReward}* ✨\n\n"${defaultItemText}"\n\n💡 *الفضل*: ${defaultVirtue}\n\n🌿 ${dedicationText}\nتمت المشاركة عبر تطبيق غراس الجنة 🌴`;
+    navigator.clipboard.writeText(textToShare);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2500);
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      await navigator.share({ title: "بطاقة ذكر", text: shareText });
-    } else {
-      await handleCopy();
-    }
-  };
-
-  const content = (
+  const contentUI = (
     <div className="space-y-6">
-      <section className="bg-white border border-[#EAE3D5] p-6 rounded-[32px] shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-bold font-serif text-[#2D5A27] flex items-center gap-2">
-              <Palette className="w-5 h-5" />
-              بطاقات الأذكار للمشاركة
-            </h2>
-            <p className="text-xs text-[#2D3436]/70">اختر النمط، أضف الإهداء، ثم انسخ البطاقة أو شاركها.</p>
-          </div>
-          <div className="flex gap-2 text-xs">
-            {(["emerald", "ivory", "sand"] as ThemeName[]).map((name) => (
-              <button
-                key={name}
-                onClick={() => setTheme(name)}
-                className={`px-3 py-2 rounded-full border ${theme === name ? "bg-[#2D5A27] text-white border-[#2D5A27]" : "bg-[#F9F7F2] border-[#EAE3D5]"}`}
-              >
-                {name === "emerald" ? "زمردي" : name === "ivory" ? "عاجي" : "رملي"}
-              </button>
-            ))}
-          </div>
+      
+      {/* Header Controls */}
+      <div className="bg-white border border-[#EAE3D5] p-6 sm:p-8 rounded-[40px] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold font-serif text-[#2D5A27] flex items-center gap-2">
+            <Palette className="w-5 h-5 text-[#2D5A27]" />
+            تَوْلِيدُ بَطَاقَاتِ الأَذْكَارِ لِلْمُشَارَكَةِ
+          </h2>
+          <p className="text-xs text-[#2D3436]/70 font-sans">
+            صمم بطاقة ذِكْرٍ أنيقة للنشر والمشاركة مع الأهل والأصدقاء بنية الصدقة الجارية.
+          </p>
         </div>
+
+        {/* Theme Picker */}
+        <div className="flex items-center gap-2 bg-[#F9F7F2] p-1.5 rounded-full border border-[#EAE3D5] text-xs">
+          <button
+            onClick={() => setThemeStyle("emerald_gold")}
+            className={`px-3.5 py-1.5 rounded-full font-medium transition-all ${
+              themeStyle === "emerald_gold" ? "bg-[#2D5A27] text-white font-bold shadow-sm" : "text-[#2D3436]/70"
+            }`}
+          >
+            خضراء وذهب
+          </button>
+          <button
+            onClick={() => setThemeStyle("sapphire_silver")}
+            className={`px-3.5 py-1.5 rounded-full font-medium transition-all ${
+              themeStyle === "sapphire_silver" ? "bg-[#2D5A27] text-white font-bold shadow-sm" : "text-[#2D3436]/70"
+            }`}
+          >
+            عاجية ورزمرد
+          </button>
+          <button
+            onClick={() => setThemeStyle("sand_amber")}
+            className={`px-3.5 py-1.5 rounded-full font-medium transition-all ${
+              themeStyle === "sand_amber" ? "bg-[#2D5A27] text-white font-bold shadow-sm" : "text-[#2D3436]/70"
+            }`}
+          >
+            رملية وذهب
+          </button>
+        </div>
+      </div>
+
+      {/* Dedication Input */}
+      <div className="bg-[#F9F7F2] p-4 rounded-2xl border border-[#EAE3D5] flex items-center gap-3">
+        <span className="text-xs text-[#2D5A27] font-bold shrink-0">نص الإهداء/الصدقة:</span>
         <input
-          value={dedication}
-          onChange={(event) => setDedication(event.target.value)}
-          className="w-full rounded-full bg-[#F9F7F2] border border-[#EAE3D5] px-4 py-3 text-sm focus:outline-none focus:border-[#2D5A27]"
-          placeholder="نص الإهداء"
+          type="text"
+          value={dedicationText}
+          onChange={(e) => setDedicationText(e.target.value)}
+          placeholder="مثال: صدقة جارية عن والديّ الكرام"
+          className="w-full bg-white border border-[#EAE3D5] rounded-full px-4 py-2 text-xs text-[#2D3436] focus:outline-none focus:border-[#2D5A27]"
         />
-      </section>
+      </div>
 
-      <article className={`${themes[theme]} relative overflow-hidden rounded-[40px] min-h-[480px] p-8 sm:p-12 flex flex-col justify-between text-center border shadow-xl`}>
-        <div className="absolute inset-0 opacity-10" aria-hidden="true">
-          <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full border-[28px] border-current" />
-          <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full border-[32px] border-current" />
-        </div>
-        <div className="relative z-10 flex justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-current/30 bg-white/10 px-4 py-2 text-xs font-bold">
-            <Trees className="w-4 h-4" />
-            {reward}
-          </span>
-        </div>
-        <div className="relative z-10 space-y-6">
-          <Sparkles className="w-7 h-7 mx-auto opacity-80" />
-          <p className="font-serif text-2xl sm:text-4xl leading-loose font-bold">{text}</p>
-          <p className="text-sm leading-relaxed opacity-80 max-w-xl mx-auto">{virtue}</p>
-        </div>
-        <div className="relative z-10 pt-5 border-t border-current/20">
-          <p className="font-bold">{dedication}</p>
-          <p className="text-xs opacity-70 mt-2">غراس الجنة • تمكين الذاكرين</p>
-        </div>
-      </article>
+      {/* Live Card Preview */}
+      <div className="flex justify-center my-4">
+        <div
+          ref={cardRef}
+          className={`w-full max-w-lg p-8 sm:p-10 rounded-[36px] border-2 shadow-sm relative overflow-hidden text-center space-y-6 ${currentTheme.bg}`}
+        >
+          {/* Subtle Corner Ornaments */}
+          <div className="absolute top-3 right-4 text-amber-500/50 text-xs font-serif">❖ ﷽ ❖</div>
+          <div className="absolute top-3 left-4 text-amber-500/50 text-xs font-serif">❖ 🌴 ❖</div>
 
-      <div className="flex justify-center gap-3 flex-wrap">
-        <button onClick={handleCopy} className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#F9F7F2] border border-[#EAE3D5] text-[#2D5A27] font-bold text-sm">
-          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-          {copied ? "تم النسخ" : "نسخ النص"}
-        </button>
-        <button onClick={handleShare} className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#2D5A27] text-white font-bold text-sm">
-          <Share2 className="w-4 h-4" />
-          مشاركة البطاقة
+          {/* Title Header Banner */}
+          <div className={`inline-block px-6 py-2 rounded-full border ${currentTheme.titleBg} shadow-sm`}>
+            <h3 className="text-xl font-black font-serif tracking-wider">
+              غِرَاسُ الجَنَّةِ
+            </h3>
+          </div>
+
+          {/* Main Dhikr Content Box */}
+          <div className={`p-6 rounded-[28px] bg-white/10 backdrop-blur-sm border ${currentTheme.border} shadow-inner space-y-3`}>
+            <p className="text-xl sm:text-2xl font-extrabold font-serif leading-relaxed">
+              {defaultItemText}
+            </p>
+          </div>
+
+          {/* Virtue & Reward Box */}
+          <div className="space-y-1 text-xs">
+            <span className={`inline-flex items-center gap-1.5 font-bold ${currentTheme.accent}`}>
+              <Trees className="w-4 h-4" />
+              {defaultReward}
+            </span>
+            <p className="font-sans text-[11px] leading-relaxed max-w-sm mx-auto opacity-90">
+              {defaultVirtue}
+            </p>
+          </div>
+
+          {/* Dedication Footer */}
+          <div className="pt-4 border-t border-white/20 flex items-center justify-between text-[11px] opacity-80">
+            <span>{dedicationText}</span>
+            <span className="font-serif">تطبيق غراس الجنة</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sharing Buttons */}
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={handleCopyText}
+          className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#2D5A27] hover:bg-[#1E3D1A] text-white font-bold text-xs shadow-sm transition-all"
+        >
+          {isCopied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+          <span>{isCopied ? "تم نسخ نص البطاقة!" : "نسخ بطاقة الذكر للمشاركة"}</span>
         </button>
       </div>
+
     </div>
   );
 
-  if (isEmbeddedView) return <div className="max-w-4xl mx-auto">{content}</div>;
+  if (isEmbeddedView) {
+    return <div className="max-w-4xl mx-auto">{contentUI}</div>;
+  }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto p-4">
-      <div className="max-w-4xl mx-auto bg-[#FDFCF9] rounded-[40px] p-5 sm:p-8 relative shadow-2xl">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white border border-[#EAE3D5] rounded-[40px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative text-[#2D3436]">
         {onClose && (
-          <button onClick={onClose} className="absolute top-4 left-4 z-20 p-2 rounded-full bg-white border border-[#EAE3D5]" aria-label="إغلاق">
+          <button
+            onClick={onClose}
+            className="absolute top-4 left-4 p-2 rounded-full bg-[#F9F7F2] text-stone-400 hover:text-[#2D5A27] border border-[#EAE3D5]"
+          >
             <X className="w-5 h-5" />
           </button>
         )}
-        {content}
+        {contentUI}
       </div>
     </div>
   );

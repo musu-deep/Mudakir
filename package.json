@@ -1,7 +1,7 @@
 {
   "name": "mudakir",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "تطبيق غراس الجنة للذكر والأذكار والتدبر بمساعدة Gemini",
   "type": "module",
   "scripts": {

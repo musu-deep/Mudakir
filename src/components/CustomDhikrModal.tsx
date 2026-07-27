@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BookmarkPlus, Plus, X } from "lucide-react";
+import { Plus, X, BookmarkPlus } from "lucide-react";
 import { CustomDhikr, DhikrItem } from "../types";
 import { saveCustomDhikr } from "../utils/storage";
 
@@ -8,75 +8,94 @@ interface CustomDhikrModalProps {
   onDhikrAdded: (item: DhikrItem) => void;
 }
 
-export const CustomDhikrModal: React.FC<CustomDhikrModalProps> = ({ onClose, onDhikrAdded }) => {
+export const CustomDhikrModal: React.FC<CustomDhikrModalProps> = ({
+  onClose,
+  onDhikrAdded,
+}) => {
   const [text, setText] = useState("");
   const [target, setTarget] = useState(100);
   const [virtue, setVirtue] = useState("");
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!text.trim()) return;
 
-    const customDhikr: CustomDhikr = {
+    const newCustom: CustomDhikr = {
       id: `custom-${Date.now()}`,
       text: text.trim(),
-      target: Math.max(1, target || 100),
+      target: target || 100,
       virtue: virtue.trim() || undefined,
     };
 
-    saveCustomDhikr(customDhikr);
-    onDhikrAdded({
-      id: customDhikr.id,
-      text: customDhikr.text,
+    saveCustomDhikr(newCustom);
+
+    // Convert to DhikrItem format for live app usage
+    const dhikrItem: DhikrItem = {
+      id: newCustom.id,
+      text: newCustom.text,
       category: "custom",
-      defaultTarget: customDhikr.target,
-      virtue: customDhikr.virtue,
+      defaultTarget: newCustom.target,
+      virtue: newCustom.virtue,
       rewardDescription: "ذِكْرٌ خاصٌ مضافٌ بحسابك",
-    });
+    };
+
+    onDhikrAdded(dhikrItem);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white border border-[#EAE3D5] rounded-[40px] max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
-        <button onClick={onClose} className="absolute top-4 left-4 p-2 rounded-full bg-[#F9F7F2] border border-[#EAE3D5]" aria-label="إغلاق">
+      <div className="bg-white border border-[#EAE3D5] rounded-[40px] max-w-lg w-full p-6 sm:p-8 shadow-2xl relative text-[#2D3436]">
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 p-2 rounded-full bg-[#F9F7F2] text-stone-400 hover:text-[#2D5A27] border border-[#EAE3D5]"
+        >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-full bg-[#2D5A27]/10 text-[#2D5A27]">
+          <div className="p-3 rounded-full bg-[#2D5A27]/10 text-[#2D5A27] border border-[#2D5A27]/20">
             <BookmarkPlus className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold font-serif text-[#2D5A27]">إِضَافَةُ ذِكْرٍ خَاصٍّ</h3>
-            <p className="text-xs text-[#2D3436]/70">أضف ورداً خاصاً وحدد هدفه اليومي.</p>
+            <h3 className="text-lg font-bold font-serif text-[#2D5A27]">إِضَافَةُ ذِكْرٍ خَاصٍّ جَدِيدٍ</h3>
+            <p className="text-xs text-[#2D3436]/70 font-sans">
+              أضف أي دعاء أو ورد أو ورد استغفار خاص بك للبدء بتتبعه في المسبحة.
+            </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-          <label className="block space-y-1.5">
-            <span className="font-bold">نص الذكر أو الدعاء</span>
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
+          
+          {/* Text Input */}
+          <div className="space-y-1.5">
+            <label className="block text-[#2D3436] font-bold">نص الذكر أو الدعاء (*):</label>
             <textarea
               required
-              rows={4}
+              rows={3}
               value={text}
-              onChange={(event) => setText(event.target.value)}
-              className="w-full bg-[#F9F7F2] border border-[#EAE3D5] rounded-2xl p-3 focus:outline-none focus:border-[#2D5A27]"
-              placeholder="اكتب الذكر هنا..."
+              onChange={(e) => setText(e.target.value)}
+              placeholder="مثال: اللهم إني أسألك الهدى والتقى والعفاف والغنى..."
+              className="w-full bg-[#F9F7F2] border border-[#EAE3D5] rounded-2xl p-3 text-sm text-[#2D3436] placeholder-[#2D3436]/40 focus:outline-none focus:border-[#2D5A27] font-serif"
             />
-          </label>
+          </div>
 
-          <div className="space-y-2">
-            <span className="font-bold">العدد المستهدف</span>
-            <div className="flex items-center gap-2 flex-wrap">
-              {[33, 100, 1000].map((value) => (
+          {/* Target Goal Input */}
+          <div className="space-y-1.5">
+            <label className="block text-[#2D3436] font-bold">العدد المستهدف (الهدف):</label>
+            <div className="flex items-center gap-2">
+              {[33, 100, 1000].map((num) => (
                 <button
                   type="button"
-                  key={value}
-                  onClick={() => setTarget(value)}
-                  className={`px-4 py-2 rounded-full border ${target === value ? "bg-[#2D5A27] text-white border-[#2D5A27]" : "bg-[#F9F7F2] border-[#EAE3D5]"}`}
+                  key={num}
+                  onClick={() => setTarget(num)}
+                  className={`px-3.5 py-1.5 rounded-full border font-mono ${
+                    target === num
+                      ? "bg-[#2D5A27] text-white border-[#2D5A27] font-bold shadow-sm"
+                      : "bg-[#F9F7F2] border-[#EAE3D5] text-[#2D3436]"
+                  }`}
                 >
-                  {value}
+                  {num}
                 </button>
               ))}
               <input
@@ -84,25 +103,41 @@ export const CustomDhikrModal: React.FC<CustomDhikrModalProps> = ({ onClose, onD
                 min={1}
                 max={10000}
                 value={target}
-                onChange={(event) => setTarget(Number(event.target.value) || 1)}
-                className="w-28 bg-[#F9F7F2] border border-[#EAE3D5] rounded-full px-3 py-2 text-center"
+                onChange={(e) => setTarget(parseInt(e.target.value) || 100)}
+                className="w-24 bg-[#F9F7F2] border border-[#EAE3D5] rounded-full px-3 py-1.5 text-center font-mono text-[#2D3436]"
               />
             </div>
           </div>
 
-          <label className="block space-y-1.5">
-            <span className="font-bold">ملاحظة أو فضل الذكر (اختياري)</span>
+          {/* Virtue/Notes Input */}
+          <div className="space-y-1.5">
+            <label className="block text-[#2D3436] font-bold">ملاحظات أو الفضل (اختياري):</label>
             <input
+              type="text"
               value={virtue}
-              onChange={(event) => setVirtue(event.target.value)}
-              className="w-full bg-[#F9F7F2] border border-[#EAE3D5] rounded-2xl p-3 focus:outline-none focus:border-[#2D5A27]"
+              onChange={(e) => setVirtue(e.target.value)}
+              placeholder="مثال: يقال عند الصباح لمغفرة الذنوب وتيسير الرزق"
+              className="w-full bg-[#F9F7F2] border border-[#EAE3D5] rounded-2xl p-3 text-[#2D3436] placeholder-[#2D3436]/40 focus:outline-none focus:border-[#2D5A27]"
             />
-          </label>
+          </div>
 
-          <button type="submit" className="w-full flex items-center justify-center gap-2 rounded-full bg-[#2D5A27] text-white py-3 font-bold hover:bg-[#1E3D1A]">
-            <Plus className="w-4 h-4" />
-            حفظ الذكر والبدء به
-          </button>
+          {/* Submit */}
+          <div className="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2 rounded-full bg-[#F9F7F2] text-[#2D3436] border border-[#EAE3D5] hover:bg-[#EAE3D5]/40"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 rounded-full bg-[#2D5A27] hover:bg-[#1E3D1A] text-white font-bold shadow-sm"
+            >
+              حفظ الذكر
+            </button>
+          </div>
+
         </form>
       </div>
     </div>
